@@ -1,0 +1,10 @@
+{
+  "domain": "ne36pro",
+  "name": "H3C Magic NE36Pro",
+  "codeowners": ["@ye-cao"],
+  "config_flow": true,
+  "documentation": "https://github.com/ye-cao/H3C-Magic-NE36Pro-",
+  "iot_class": "local_polling",
+  "version": "1.0.0",
+  "requirements": []
+}

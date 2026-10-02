@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "H3C Magic NE36Pro",
+        "description": "Enter the router address and admin password (default username: user).",
+        "data": {
+          "host": "Host (e.g. 192.168.101.247)",
+          "username": "Username",
+          "password": "Admin password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Login failed: wrong username or password.",
+      "cannot_connect": "Cannot connect to the router, check host and network."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "description": "Change connection parameters.",
+        "data": {
+          "host": "Host",
+          "username": "Username",
+          "password": "Admin password"
+        }
+      }
+    }
+  }
+}
