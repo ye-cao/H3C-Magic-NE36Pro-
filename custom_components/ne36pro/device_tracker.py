@@ -70,6 +70,10 @@ class Ne36ProDeviceTracker(CoordinatorEntity, TrackerEntity):
 
     _attr_has_entity_name = True
     _attr_source_type = SourceType.ROUTER
+    # HA's BaseTrackerEntity defaults to EntityCategory.DIAGNOSTIC, which
+    # buries client trackers in the device page's "诊断" fold. Client
+    # presence belongs on the main device card — override the default.
+    _attr_entity_category = None
 
     def __init__(self, coordinator, entry, mac: str) -> None:
         super().__init__(coordinator)
