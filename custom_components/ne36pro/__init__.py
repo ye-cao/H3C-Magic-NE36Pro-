@@ -40,3 +40,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded:
         hass.data[DOMAIN].pop(entry.entry_id, None)
     return unloaded
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device
+) -> bool:
+    """Allow removing legacy identifier-less per-client device cards.
+
+    These were created by early versions of this integration (before
+    trackers were attached to the router device). The main router device
+    (which carries identifiers) is protected and cannot be removed.
+    """
+    return not device.identifiers
