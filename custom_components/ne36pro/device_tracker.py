@@ -51,7 +51,10 @@ async def async_setup_entry(
             trackers[mac] = ent
             new.append(ent)
         if new:
-            hass.async_create_task(async_add_entities(new))
+            # Modern HA: async_add_entities is a plain callback returning None
+            # (schedules internally); wrapping it in async_create_task raises
+            # "a coroutine was expected, got None".
+            async_add_entities(new)
 
     _sync()
     coordinator.async_add_listener(_sync)
