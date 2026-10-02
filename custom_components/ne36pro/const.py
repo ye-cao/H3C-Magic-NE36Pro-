@@ -12,3 +12,8 @@ CONF_PASSWORD = "password"
 PLATFORMS = ["sensor", "binary_sensor", "switch", "button", "device_tracker"]
 
 UPDATE_INTERVAL = 30  # seconds
+
+# Clients absent from the router list longer than this are removed from the
+# registry (their tracker entity disappears). Short dropouts (phone standby)
+# merely flip the tracker to not_home, so there is no flapping.
+AUTO_REMOVE_OFFLINE_DAYS = 7

@@ -5,6 +5,7 @@ import logging
 from datetime import timedelta
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import Ne36ProApi, Ne36ProAuthError
 from .const import DOMAIN, UPDATE_INTERVAL
@@ -47,6 +48,10 @@ class Ne36ProDataUpdateCoordinator(DataUpdateCoordinator):
             config_entry=entry,
         )
         self.api = api
+        # MAC -> last time the client was seen in the router list. Entries
+        # are never pruned here; the tracker platform removes entities that
+        # have been absent for AUTO_REMOVE_OFFLINE_DAYS.
+        self.known_clients: dict[str, object] = {}
 
     async def _async_update_data(self) -> dict:
         try:
@@ -57,7 +62,20 @@ class Ne36ProDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Auth error: {err}") from err
         except Exception as err:  # noqa: BLE001 - surface any comms error to HA
             raise UpdateFailed(f"Communication error: {err}") from err
+
+        stalist = (esps.get("stalist") or {})
+        lst = stalist.get("list", []) if isinstance(stalist, dict) else stalist
+        now = dt_util.utcnow()
+        for c in lst or []:
+            mac = c.get("mac")
+            if mac:
+                self.known_clients[mac] = now
+
         return {"basic": basic, "net": net, "esps": esps}
+
+    def last_seen(self, mac: str):
+        """Time the client was last in the router's list (None = never)."""
+        return self.known_clients.get(mac)
 
 
 def ssid_list(data: dict) -> list:
