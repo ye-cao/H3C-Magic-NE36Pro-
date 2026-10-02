@@ -91,12 +91,16 @@ class Ne36ProDeviceTracker(CoordinatorEntity, TrackerEntity):
     @property
     def name(self) -> str | None:
         c = self._client() or {}
-        return (
+        base = (
             c.get("hostname")
             or c.get("remark")
             or (f"{c.get('brand')} 设备" if c.get("brand") else None)
-            or f"客户端 {self._mac}"
+            or "客户端"
         )
+        # The router reports many clients with the same generic hostname
+        # (e.g. "默认 设备"); append the MAC tail so entities stay
+        # distinguishable.
+        return f"{base} · {self._mac[-8:]}"
 
     @property
     def state(self) -> str | None:
