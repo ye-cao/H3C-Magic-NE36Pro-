@@ -1,5 +1,11 @@
 # H3C Magic NE36Pro — Home Assistant 集成
 
+<p align="center">
+  <img src="logo.png" alt="H3C Magic NE36Pro" width="160"/>
+</p>
+
+[![在 Home Assistant 中添加此集成](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ne36pro)
+
 把 H3C Magic **NE36Pro** 路由器（AP / 路由模式均可）接入 Home Assistant：
 监控工作状态、在线设备、CPU/内存，并可一键**重启**、**开关 WiFi**。
 
