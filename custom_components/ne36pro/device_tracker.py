@@ -3,17 +3,22 @@
 One presence entity per connected client, built from esps.sta.getlist.
 New clients are added automatically on the next coordinator refresh.
 
-NOTE: ScannerEntity (not TrackerEntity) is the correct base for router
-presence tracking: ScannerEntity.state is STATE_HOME/STATE_NOT_HOME driven
-by is_connected. TrackerEntity.state is purely location-based and ignores
-is_connected entirely. ScannerEntity.device_info is @final None by design,
-so trackers intentionally do not attach to the router device.
+Design note (v1.0.4): ScannerEntity was used before, but its device_info
+is @final None — tracker entities could never appear on any device page.
+TrackerEntity.state however is NOT final (ScannerEntity itself just
+overrides it), so we subclass TrackerEntity, reimplement the scanner
+state semantics (home/not_home from the client list) and attach
+device_info pointing at the router device. Result: every client shows
+up under the "H3C Magic NE36Pro" device card.
 """
 from __future__ import annotations
 
-from homeassistant.components.device_tracker import ScannerEntity
+from homeassistant.components.device_tracker import TrackerEntity
+from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_HOME, STATE_NOT_HOME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -60,10 +65,11 @@ async def async_setup_entry(
     coordinator.async_add_listener(_sync)
 
 
-class Ne36ProDeviceTracker(CoordinatorEntity, ScannerEntity):
+class Ne36ProDeviceTracker(CoordinatorEntity, TrackerEntity):
     """Presence tracking for one connected client."""
 
     _attr_has_entity_name = True
+    _attr_source_type = SourceType.ROUTER
 
     def __init__(self, coordinator, entry, mac: str) -> None:
         super().__init__(coordinator)
@@ -71,6 +77,10 @@ class Ne36ProDeviceTracker(CoordinatorEntity, ScannerEntity):
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_tracker_{mac}"
         self._attr_mac_address = mac
+        # Attach to the router device so every client is visible on the
+        # "H3C Magic NE36Pro" device card (ScannerEntity forbids this;
+        # plain TrackerEntity allows it).
+        self._attr_device_info = DeviceInfo(identifiers={(DOMAIN, entry.entry_id)})
 
     def _client(self) -> dict | None:
         for c in _clients(self.coordinator.data):
@@ -89,9 +99,12 @@ class Ne36ProDeviceTracker(CoordinatorEntity, ScannerEntity):
         )
 
     @property
-    def is_connected(self) -> bool | None:
+    def state(self) -> str | None:
+        """home/not_home from the client list — scanner semantics."""
         c = self._client()
-        return bool(c and _is_online(c))
+        if c is None:
+            return STATE_NOT_HOME  # client no longer in the list
+        return STATE_HOME if _is_online(c) else STATE_NOT_HOME
 
     @property
     def ip_address(self) -> str | None:
